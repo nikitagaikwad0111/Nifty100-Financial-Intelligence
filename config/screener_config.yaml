@@ -1,0 +1,82 @@
+# Screener Configuration — All threshold definitions
+# Analysts can edit this file to create custom screens
+# without changing any Python code
+
+filters:
+  min_roe: null
+  max_de: null
+  min_fcf: null
+  min_revenue_cagr_5yr: null
+  min_pat_cagr_5yr: null
+  min_opm: null
+  max_pe: null
+  max_pb: null
+  min_dividend_yield: null
+  min_icr: null
+  min_net_profit: null
+  min_eps_cagr_5yr: null
+  min_asset_turnover: null
+  min_sales: null
+  sector: null
+
+presets:
+  quality_compounder:
+    min_roe: 15
+    max_de: 1.0
+    min_fcf: 0
+    min_revenue_cagr_5yr: 10
+    description: "High ROE, low debt, positive FCF, consistent revenue growth"
+
+  value_pick:
+    max_pe: 20
+    max_pb: 3.0
+    max_de: 2.0
+    min_dividend_yield: 1
+    description: "Undervalued companies with reasonable debt and dividend"
+
+  growth_accelerator:
+    min_pat_cagr_5yr: 20
+    min_revenue_cagr_5yr: 15
+    max_de: 2.0
+    description: "High growth companies in revenue and profit"
+
+  dividend_champion:
+    min_dividend_yield: 2
+    max_dividend_payout: 80
+    min_fcf: 0
+    description: "High dividend yield with sustainable payout"
+
+  debt_free_blue_chip:
+    max_de: 0.1
+    min_roe: 12
+    min_sales: 5000
+    description: "Debt-free large companies with strong ROE"
+
+  turnaround_watch:
+    min_revenue_cagr_3yr: 10
+    min_fcf: 0
+    description: "Companies showing revenue recovery and positive FCF"
+
+composite_score_weights:
+  profitability:
+    weight: 0.35
+    metrics:
+      roe: 0.15
+      roce: 0.10
+      npm: 0.10
+  cash_quality:
+    weight: 0.30
+    metrics:
+      fcf_cagr: 0.15
+      cfo_pat_ratio: 0.10
+      fcf_positive_flag: 0.05
+  growth:
+    weight: 0.20
+    metrics:
+      revenue_cagr_5yr: 0.10
+      pat_cagr_5yr: 0.10
+  leverage:
+    weight: 0.15
+    metrics:
+      de_score: 0.10
+      icr_score: 0.05
