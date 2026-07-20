@@ -34,7 +34,7 @@ def load_financial_data() -> pd.DataFrame:
         JOIN companies c ON fr.company_id = c.id
         JOIN sectors s ON fr.company_id = s.company_id
         LEFT JOIN market_cap mc ON fr.company_id = mc.company_id
-            AND mc.year = 2024
+            AND mc.year = '2024-03'
         WHERE fr.year = (
             SELECT MAX(year) FROM financial_ratios fr2
             WHERE fr2.company_id = fr.company_id

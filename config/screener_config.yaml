@@ -28,8 +28,8 @@ presets:
     description: "High ROE, low debt, positive FCF, consistent revenue growth"
 
   value_pick:
-    max_pe: 20
-    max_pb: 3.0
+    max_pe: 35
+    max_pb: 5.0
     max_de: 2.0
     min_dividend_yield: 1
     description: "Undervalued companies with reasonable debt and dividend"
