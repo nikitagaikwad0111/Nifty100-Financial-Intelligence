@@ -14,23 +14,6 @@ def get_companies():
     return df
 
 @st.cache_data(ttl=600)
-def get_all_ratios():
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql('''
-        SELECT fr.*, s.broad_sector, s.sub_sector,
-               c.company_name, mc.pe_ratio, mc.pb_ratio,
-               mc.dividend_yield_pct, mc.market_cap_crore,
-               mc.ev_ebitda, mc.enterprise_value_crore
-        FROM financial_ratios fr
-        JOIN companies c ON fr.company_id = c.id
-        JOIN sectors s ON fr.company_id = s.company_id
-        LEFT JOIN market_cap mc ON fr.company_id = mc.company_id
-            AND mc.year = fr.year
-    ''', conn)
-    conn.close()
-    return df
-
-@st.cache_data(ttl=600)
 def get_ratios(ticker, year=None):
     conn = sqlite3.connect(DB_PATH)
     if year:
@@ -74,8 +57,7 @@ def get_cf(ticker):
 @st.cache_data(ttl=600)
 def get_sectors():
     conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql(
-        'SELECT * FROM sectors', conn)
+    df = pd.read_sql('SELECT * FROM sectors', conn)
     conn.close()
     return df
 
@@ -116,29 +98,43 @@ def get_documents(ticker):
 @st.cache_data(ttl=600)
 def get_latest_ratios():
     conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql('''
-        SELECT fr.*, s.broad_sector, s.sub_sector,
-               c.company_name, mc.pe_ratio, mc.pb_ratio,
-               mc.dividend_yield_pct, mc.market_cap_crore
+    # Get latest March year per company first
+    latest = pd.read_sql('''
+        SELECT company_id, MAX(year) as year
+        FROM financial_ratios
+        WHERE year LIKE "%-03"
+        GROUP BY company_id
+    ''', conn)
+    # Get all ratios
+    all_ratios = pd.read_sql('''
+        SELECT fr.*,
+               s.broad_sector, s.sub_sector,
+               c.company_name,
+               mc.pe_ratio, mc.pb_ratio,
+               mc.dividend_yield_pct,
+               mc.market_cap_crore
         FROM financial_ratios fr
         JOIN companies c ON fr.company_id = c.id
         JOIN sectors s ON fr.company_id = s.company_id
-        LEFT JOIN market_cap mc ON fr.company_id = mc.company_id
-            AND mc.year = fr.year
-        WHERE fr.year = (
-            SELECT MAX(year) FROM financial_ratios fr2
-            WHERE fr2.company_id = fr.company_id
-            AND fr2.year LIKE
-            "'%-03'"
-        )
+        LEFT JOIN market_cap mc
+            ON fr.company_id = mc.company_id
+            AND fr.year = mc.year
     ''', conn)
     conn.close()
+    # Merge to keep only latest year
+    df = all_ratios.merge(latest, on=['company_id', 'year'])
     return df
 
 @st.cache_data(ttl=600)
 def get_capital_allocation():
     conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql('''
+    latest = pd.read_sql('''
+        SELECT company_id, MAX(year) as year
+        FROM financial_ratios
+        WHERE year LIKE "%-03"
+        GROUP BY company_id
+    ''', conn)
+    all_data = pd.read_sql('''
         SELECT fr.company_id, c.company_name,
                fr.capital_allocation_pattern,
                fr.free_cash_flow_cr, fr.year,
@@ -146,12 +142,7 @@ def get_capital_allocation():
         FROM financial_ratios fr
         JOIN companies c ON fr.company_id = c.id
         JOIN sectors s ON fr.company_id = s.company_id
-        WHERE fr.year = (
-            SELECT MAX(year) FROM financial_ratios fr2
-            WHERE fr2.company_id = fr.company_id
-            AND fr2.year LIKE
-            "'%-03'"
-        )
     ''', conn)
     conn.close()
+    df = all_data.merge(latest, on=['company_id', 'year'])
     return df
