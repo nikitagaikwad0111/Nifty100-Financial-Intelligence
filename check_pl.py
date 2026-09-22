@@ -1,0 +1,9 @@
+import sqlite3
+
+conn = sqlite3.connect('data/nifty100.db')
+cur = conn.cursor()
+cur.execute("PRAGMA table_info(profitandloss)")
+print('profitandloss columns:')
+for c in cur.fetchall():
+    print(' -', c[1], '|', c[2])
+conn.close()
